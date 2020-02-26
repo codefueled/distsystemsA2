@@ -6,7 +6,7 @@ import threading
 
 class Broker:
     def __init__(self, ip_add):
-        context = zmq.Context()
+        self.context = zmq.Context()
         self.sub_socket = context.socket(zmq.SUB)
         self.pub_socket = context.socket(zmq.PUB)
         self.current_topics = []
