@@ -4,6 +4,7 @@ import zmq
 import time
 import sys
 from kazoo.client import KazooClient
+from kazoo.client import KazooState
 import logging
 logging.basicConfig()
 
@@ -26,7 +27,7 @@ class Publisher:
         def watch_node(data, stat, event):
             if event is None:
                 data, stat = self.zk_driver.get(self.home)
-                ports = data.split(":")
+                ports = data.decode('ASCII').split(":")
                 self.full_add = "tcp://" + str(ip_add) + ":" + ports[0]
                 self.sock_pub.connect(self.full_add)
             else:
@@ -46,7 +47,7 @@ class Publisher:
         # format for published string is "topic||info"
         @self.zk_driver.DataWatch(self.home)
         def watch_node(data, stat, event):
-            if event.type == "CHANGED":
+            if event is not None and event.type == "CHANGED":
                 #DISCONNECT
                 self.sock_pub.close()
                 self.context.term()
@@ -56,7 +57,7 @@ class Publisher:
 
                 #RECONNECT WITH NEW PORT
                 data, stat = self.zk_driver.get(self.home)
-                ports = data.split(":")
+                ports = data.decode('ASCII').split(":")
                 self.full_add = "tcp://" + str(ip_add) + ":" + ports[0]
                 self.sock_pub.connect(self.full_add)
 

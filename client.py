@@ -29,7 +29,7 @@ class Subscriber:
         def watch_node(data, stat, event):
             if event is None:
                 data, stat = self.zk_driver.get(self.home)
-                ports = data.split(":")
+                ports = data.decode('ASCII').split(":")
                 self.full_add = "tcp://" + str(ip_add) + ":" + ports[1]
                 self.sock_sub.connect(self.full_add)
             else:
@@ -48,7 +48,7 @@ class Subscriber:
             while (not stop.is_set()):
                 @self.zk_driver.DataWatch(self.home)
                 def watch_node(data, stat, event):
-                    if event.type == "CHANGED":
+                    if event is not None and event.type == "CHANGED":
                         # DISCONNECT
                         self.sock_sub.close()
                         self.context.term()
@@ -58,7 +58,7 @@ class Subscriber:
 
                         # RECONNECT WITH NEW PORT
                         data, stat = self.zk_driver.get(self.home)
-                        ports = data.split(":")
+                        ports = data.decode('ASCII').split(":")
                         self.full_add = "tcp://" + str(ip_add) + ":" + ports[1]
                         self.sock_sub.connect(self.full_add)
 
@@ -71,7 +71,7 @@ class Subscriber:
             while True:
                 @self.zk_driver.DataWatch(self.home)
                 def watch_node(data, stat, event):
-                    if event.type == "CHANGED":
+                    if event is not None and event.type == "CHANGED":
                         # DISCONNECT
                         self.sock_sub.close()
                         self.context.term()
@@ -81,7 +81,7 @@ class Subscriber:
 
                         # RECONNECT WITH NEW PORT
                         data, stat = self.zk_driver.get(self.home)
-                        ports = data.split(":")
+                        ports = data.decode('ASCII').split(":")
                         self.full_add = "tcp://" + str(ip_add) + ":" + ports[1]
                         self.sock_sub.connect(self.full_add)
 

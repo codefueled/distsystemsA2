@@ -30,15 +30,18 @@ class ZK_Driver:
         self.zk_driver.ensure_path(self.home)
 
         #CREATE ZNODES WITH PUB + SUB PORT
-        self.zk_driver.create(znode1, "1234:5556")
-        self.zk_driver.create(znode2, "1235:5557")
-        self.zk_driver.create(znode3, "1236:5558")
+        if not self.zk_driver.exists(znode1):
+            self.zk_driver.create(znode1, b'1234:5556')
+        if not self.zk_driver.exists(znode2):
+            self.zk_driver.create(znode2, b'1235:5557')
+        if not self.zk_driver.exists(znode3):
+            self.zk_driver.create(znode3, b'1236:5558')
 
         #HOLD ELECTION TO GET PRESIDENT NODE
         self.election = self.zk_driver.Election(self.home, "president")
         contenders = self.election.contenders()
         self.president = contenders[-1].encode('latin-1') #REPRESENTS THE WINNING PUB/SUB PORT COMBO
-        ports = self.president.split(":")
+        ports = self.president.decode('ASCII').split(":")
 
         #FULL BROKER PORT ADDRESSES
         self.full_add1 = "tcp://" + str(ip_add) + ":" + ports[0]
