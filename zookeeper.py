@@ -118,7 +118,6 @@ class ZK_Driver:
                 message = self.sub_socket.recv_string()
                 topic, info = message.split("||")
                 error_flag = False
-
                 if topic == "REGISTER":
                     error = False
                     for curr_topic in self.current_topics:
@@ -127,16 +126,10 @@ class ZK_Driver:
                             error = True
                     if not error:
                         self.current_topics.append(info)
-                        print("Addr ", self.full_add1, end=". ")
                         print("Received: %s" % message)
                         self.pub_socket.send_string(message)
                 else:
-                    if topic in self.current_topics:
-                        print("Addr ", self.full_add1, end=". ")
-                        print("Received: %s" % message)
-                        self.pub_socket.send_string(message)
-                    else:
-                        print("Please start over with a valid topic")
+                    self.pub_socket.send_string(message)
         else:
             message = self.sub_socket.recv_string()
             topic, info = message.split("||")
