@@ -58,7 +58,7 @@ class Publisher:
                 self.full_add = "tcp://" + str(ip_add) + ":" + ports[0]
                 self.sock_pub.connect(self.full_add)
                 self.kill = False
-                print("Reconnected! Input information about your topic and press enter to publish!")
+                print("Updated Broker! Input information about your topic and press enter to publish!")
         return True
 
 

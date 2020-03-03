@@ -78,7 +78,6 @@ class ZK_Driver:
         def watch_node(data, stat, event):
             if event is not None and event.type == "DELETED":
                 if not self.kill:
-                    print("THIS IS WHERE I WOULD RECONNECT TO THE NEW SOCKET")
                     # HOLD ELECTION TO GET PRESIDENT NODE
                     self.election = self.zk_driver.Election(self.home, "president")
                     contenders = self.election.contenders()
@@ -88,8 +87,7 @@ class ZK_Driver:
                     # FULL BROKER PORT ADDRESSES
                     self.full_add1 = "tcp://" + str(ip_add) + ":" + ports[0]
                     self.full_add2 = "tcp://" + str(ip_add) + ":" + ports[1]
-                    print(self.full_add1)
-                    print(self.full_add2)
+                    print("Updated Broker to: ", self.full_add1)
 
                     # BIND TO ADDRESSES
                     self.sub_socket.bind(self.full_add1)

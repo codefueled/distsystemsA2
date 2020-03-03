@@ -12,6 +12,7 @@ class Subscriber:
 
     # instantiate variables and connect to broker
     def __init__(self, ip_add, timeout=-1):
+        self.kill = True
         self.count = 0
         self.full_add = "tcp://" + str(ip_add)
         self.context = zmq.Context()
@@ -47,6 +48,11 @@ class Subscriber:
                 self.count = self.count + 1
         else:
             while True:
+                @self.zk_driver.DataWatch(self.home)
+                def watch_node(data, stat, event):
+                    if event is not None and event.type == "CREATED" and self.kill:
+                        self.kill = False
+                        print("Updated Broker!")
                 message = self.sock_sub.recv_string()
                 topic, info = message.split("||")
                 print("Topic: %s. Message: %s" % (topic, info))
