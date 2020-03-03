@@ -4,6 +4,7 @@ import threading
 from server import Publisher
 from client import Subscriber
 from broker import Broker
+from zookeeper import ZK_Driver
 import time
 import zmq
 
@@ -25,7 +26,7 @@ def publish1(publisher, info, stop):
 def test1():
     ip_add = "127.0.0.1"
     # initialize
-    broke1 = Broker(ip_add)
+    broke1 = ZK_Driver(ip_add)
     sub1 = Subscriber(ip_add, 3)
     pub1 = Publisher(ip_add)
 
@@ -62,7 +63,7 @@ def test1():
 def test2():
     ip_add = "127.0.0.1"
     # initialize
-    broke1 = Broker(ip_add)
+    broke1 = ZK_Driver(ip_add)
     sub1 = Subscriber(ip_add, 3)
     sub2 = Subscriber(ip_add, 3)
     sub3 = Subscriber(ip_add, 3)
@@ -140,7 +141,7 @@ def test2():
 def test3():
     ip_add = "127.0.0.1"
     # initialize
-    broke1 = Broker(ip_add)
+    broke1 = ZK_Driver(ip_add)
     sub1 = Subscriber(ip_add, 3)
 
     pub1 = Publisher(ip_add)
@@ -238,7 +239,7 @@ def test3():
 def test4():
     ip_add = "127.0.0.1"
     # initialize
-    broke1 = Broker(ip_add)
+    broke1 = ZK_Driver(ip_add)
     sub1 = Subscriber(ip_add)
     pub1 = Publisher(ip_add)
 
@@ -272,7 +273,7 @@ def test4():
 def test5():
     ip_add = "127.0.0.1"
     # initialize
-    broke1 = Broker(ip_add)
+    broke1 = ZK_Driver(ip_add)
     sub1 = Subscriber(ip_add, 3)
     sub2 = Subscriber(ip_add, 3)
     sub3 = Subscriber(ip_add, 3)
@@ -325,6 +326,7 @@ def test5():
     T12 = Thread(target=publish1, args=(pub1, "hello world", stop))
 
     T1.start()
+    time.sleep(2)
     T2.start()
     T3.start()
     T4.start()
@@ -335,6 +337,7 @@ def test5():
     T9.start()
     T10.start()
     T11.start()
+    time.sleep(2)
     T12.start()
 
     # 1 second wait
@@ -347,12 +350,11 @@ if __name__ == '__main__':
 
     ### stress tests
     test1() # 1 publisher, 1 subscriber, 1 broker
-    # test2() # 1 publisher, 10 subscribers, 1 broker
+    #test2() # 1 publisher, 10 subscribers, 1 broker
     # test3() # 10 publishers, 1 subscriber, 1 broker
 
     ### timing tests -- need to uncomment a line in client.py before running
     # test4() # 1 publisher, 1 subscriber, 1 broker
-    # test5() # 1 publisher, 10 subscribers, 1 broker -- will need to scroll up past the exceptions to see results
 
 
 

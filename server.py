@@ -63,7 +63,6 @@ class Publisher:
 
         msg = str(self.topic) + "||" + str(info)
         self.sock_pub.send_string(msg)
-        time.sleep(1)
         return True
 
 

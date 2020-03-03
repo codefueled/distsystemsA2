@@ -77,10 +77,12 @@ class ZK_Driver:
                             error = True
                     if not error:
                         self.current_topics.append(info)
+                        print("Addr ", self.full_add1, end=". ")
                         print("Received: %s" % message)
                         self.pub_socket.send_string(message)
                 else:
                     if topic in self.current_topics:
+                        print("Addr ", self.full_add1, end=". ")
                         print("Received: %s" % message)
                         self.pub_socket.send_string(message)
                     else:
@@ -98,10 +100,12 @@ class ZK_Driver:
                         error = True
                 if not error:
                     self.current_topics.append(info)
+                    print("Addr ", self.full_add1, end=". ")
                     print("Received: %s" % message)
                     self.pub_socket.send_string(message)
             else:
                 if topic in self.current_topics:
+                    print("Addr ", self.full_add1, end=". ")
                     print("Received: %s" % message)
                     self.pub_socket.send_string(message)
                 else:
