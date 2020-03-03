@@ -24,17 +24,10 @@ class Subscriber:
         self.zk_driver = KazooClient(hosts='127.0.0.1:2181')
         self.zk_driver.start()
 
-        # WAIT FOR ZOOKEEPER TO BE READY
-        @self.zk_driver.DataWatch(self.home)
-        def watch_node(data, stat, event):
-            if event is None:
-                data, stat = self.zk_driver.get(self.home)
-                ports = data.decode('ASCII').split(":")
-                self.full_add = "tcp://" + str(ip_add) + ":" + ports[1]
-                self.sock_sub.connect(self.full_add)
-            else:
-                print("Zookeeper is not ready yet, try again later")
-
+        data, stat = self.zk_driver.get(self.home)
+        ports = data.decode('ASCII').split(":")
+        self.full_add = "tcp://" + str(ip_add) + ":" + ports[1]
+        self.sock_sub.connect(self.full_add)
 
     def register_sub(self, topics):
         topic_list = topics.split(",")
@@ -46,22 +39,7 @@ class Subscriber:
     def notify(self, stop=None):
         if stop:
             while (not stop.is_set()):
-                @self.zk_driver.DataWatch(self.home)
-                def watch_node(data, stat, event):
-                    if event is not None and event.type == "CHANGED":
-                        # DISCONNECT
-                        self.sock_sub.close()
-                        self.context.term()
-                        time.sleep(2)
-                        self.context = zmq.Context()
-                        self.sock_sub = self.context.socket(zmq.SUB)
-
-                        # RECONNECT WITH NEW PORT
-                        data, stat = self.zk_driver.get(self.home)
-                        ports = data.decode('ASCII').split(":")
-                        self.full_add = "tcp://" + str(ip_add) + ":" + ports[1]
-                        self.sock_sub.connect(self.full_add)
-
+                # only used for measurements.py
                 message = self.sock_sub.recv_string()
                 topic, info = message.split("||")
                 print("Topic: %s. Message: %s" % (topic, info))
@@ -69,22 +47,6 @@ class Subscriber:
                 self.count = self.count + 1
         else:
             while True:
-                @self.zk_driver.DataWatch(self.home)
-                def watch_node(data, stat, event):
-                    if event is not None and event.type == "CHANGED":
-                        # DISCONNECT
-                        self.sock_sub.close()
-                        self.context.term()
-                        time.sleep(2)
-                        self.context = zmq.Context()
-                        self.sock_sub = self.context.socket(zmq.SUB)
-
-                        # RECONNECT WITH NEW PORT
-                        data, stat = self.zk_driver.get(self.home)
-                        ports = data.decode('ASCII').split(":")
-                        self.full_add = "tcp://" + str(ip_add) + ":" + ports[1]
-                        self.sock_sub.connect(self.full_add)
-
                 message = self.sock_sub.recv_string()
                 topic, info = message.split("||")
                 print("Topic: %s. Message: %s" % (topic, info))

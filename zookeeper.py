@@ -11,6 +11,7 @@ class ZK_Driver:
     #CTOR
     def __init__(self, ip_add):
         context = zmq.Context()
+        self.kill = False
         self.sub_socket = context.socket(zmq.SUB)
         self.pub_socket = context.socket(zmq.PUB)
         self.current_topics = []
@@ -22,20 +23,20 @@ class ZK_Driver:
         self.home = '/brokers/'
 
         #CREATE ZNODE PATHS FOR BROKERS
-        znode1 = self.home + 'bkr1'
-        znode2 = self.home + 'brk2'
-        znode3 = self.home + 'brk3'
+        self.znode1 = self.home + 'bkr1'
+        self.znode2 = self.home + 'brk2'
+        self.znode3 = self.home + 'brk3'
 
         #ENSURE ROOT DIRECTORY IS CREATED
         self.zk_driver.ensure_path(self.home)
 
         #CREATE ZNODES WITH PUB + SUB PORT
-        if not self.zk_driver.exists(znode1):
-            self.zk_driver.create(znode1, b'1234:5556')
-        if not self.zk_driver.exists(znode2):
-            self.zk_driver.create(znode2, b'1235:5557')
-        if not self.zk_driver.exists(znode3):
-            self.zk_driver.create(znode3, b'1236:5558')
+        if not self.zk_driver.exists(self.znode1):
+            self.zk_driver.create(self.znode1, b'1234:5556')
+        if not self.zk_driver.exists(self.znode2):
+            self.zk_driver.create(self.znode2, b'1235:5556')
+        if not self.zk_driver.exists(self.znode3):
+            self.zk_driver.create(self.znode3, b'1236:5556')
 
         #HOLD ELECTION TO GET PRESIDENT NODE
         self.election = self.zk_driver.Election(self.home, "president")
@@ -62,7 +63,58 @@ class ZK_Driver:
             self.zk_driver.create(self.pres_znode, ephemeral=True)
         self.zk_driver.set(self.pres_znode, self.president)
 
+        # REMOVE PRESIDENT FROM FUTURE ELECTIONS
+        if ports[0] == "1234":
+            self.zk_driver.delete(self.znode1)
+        elif ports[0] == "1235":
+            self.zk_driver.delete(self.znode2)
+        elif ports[0] == "1236":
+            self.zk_driver.delete(self.znode3)
+        else:
+            print("No port recognized")
+
     def run(self, stop=None):
+        @self.zk_driver.DataWatch(self.pres_znode)
+        def watch_node(data, stat, event):
+            if event is not None and event.type == "DELETED":
+                if not self.kill:
+                    print("THIS IS WHERE I WOULD RECONNECT TO THE NEW SOCKET")
+                    # HOLD ELECTION TO GET PRESIDENT NODE
+                    self.election = self.zk_driver.Election(self.home, "president")
+                    contenders = self.election.contenders()
+                    self.president = contenders[-1].encode('latin-1')  # REPRESENTS THE WINNING PUB/SUB PORT COMBO
+                    ports = self.president.decode('ASCII').split(":")
+
+                    # FULL BROKER PORT ADDRESSES
+                    self.full_add1 = "tcp://" + str(ip_add) + ":" + ports[0]
+                    self.full_add2 = "tcp://" + str(ip_add) + ":" + ports[1]
+                    print(self.full_add1)
+                    print(self.full_add2)
+
+                    # BIND TO ADDRESSES
+                    self.sub_socket.bind(self.full_add1)
+                    self.sub_socket.subscribe("")
+                    # self.pub_socket.bind(self.full_add2)
+
+                    # UPDATE PRESIDENT ZNODE
+                    if not self.zk_driver.exists(self.pres_znode):
+                        self.zk_driver.ensure_path(self.president_home)
+                        self.zk_driver.create(self.pres_znode, ephemeral=True)
+                    self.zk_driver.set(self.pres_znode, self.president)
+
+                    # DELETE FROM FUTURE ELECTIONS
+                    if ports[0] == "1234":
+                        self.zk_driver.delete(self.znode1)
+                    elif ports[0] == "1235":
+                        self.zk_driver.delete(self.znode2)
+                    elif ports[0] == "1236":
+                        self.zk_driver.delete(self.znode3)
+                    else:
+                        print("No port recognized")
+
+                    if not self.kill:
+                        self.kill = True
+
         if stop:
             while not stop.is_set():
                 message = self.sub_socket.recv_string()

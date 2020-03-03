@@ -11,6 +11,7 @@ logging.basicConfig()
 class Publisher:
     # instantiate variables and connect to broker
     def __init__(self, ip_add):
+        self.kill = True
         self.topic = "Default"
         #self.full_add = "tcp://" + str(ip_add) + ":1234"
         self.context = zmq.Context()
@@ -22,16 +23,10 @@ class Publisher:
         self.zk_driver = KazooClient(hosts='127.0.0.1:2181')
         self.zk_driver.start()
 
-        #WAIT FOR ZOOKEEPER TO BE READY
-        @self.zk_driver.DataWatch(self.home)
-        def watch_node(data, stat, event):
-            if event is None:
-                data, stat = self.zk_driver.get(self.home)
-                ports = data.decode('ASCII').split(":")
-                self.full_add = "tcp://" + str(ip_add) + ":" + ports[0]
-                self.sock_pub.connect(self.full_add)
-            else:
-                print("Zookeeper is not ready yet, try again later")
+        data, stat = self.zk_driver.get(self.home)
+        ports = data.decode('ASCII').split(":")
+        self.full_add = "tcp://" + str(ip_add) + ":" + ports[0]
+        self.sock_pub.connect(self.full_add)
 
 
     # register a topic for this publisher
@@ -45,24 +40,25 @@ class Publisher:
     # publish the given information for pre-registered topic
     def publish(self, info):
         # format for published string is "topic||info"
+        msg = str(self.topic) + "||" + str(info)
+        self.sock_pub.send_string(msg)
+
         @self.zk_driver.DataWatch(self.home)
         def watch_node(data, stat, event):
-            if event is not None and event.type == "CHANGED":
-                #DISCONNECT
+            if event is not None and event.type == "CREATED" and self.kill:
+                # DISCONNECT
                 self.sock_pub.close()
                 self.context.term()
-                time.sleep(2)
                 self.context = zmq.Context()
                 self.sock_pub = self.context.socket(zmq.PUB)
 
-                #RECONNECT WITH NEW PORT
+                # RECONNECT WITH NEW PORT
                 data, stat = self.zk_driver.get(self.home)
                 ports = data.decode('ASCII').split(":")
                 self.full_add = "tcp://" + str(ip_add) + ":" + ports[0]
                 self.sock_pub.connect(self.full_add)
-
-        msg = str(self.topic) + "||" + str(info)
-        self.sock_pub.send_string(msg)
+                self.kill = False
+                print("Reconnected! Input information about your topic and press enter to publish!")
         return True
 
 
