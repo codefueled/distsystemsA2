@@ -350,7 +350,7 @@ if __name__ == '__main__':
 
     ### stress tests
     test1() # 1 publisher, 1 subscriber, 1 broker
-    #test2() # 1 publisher, 10 subscribers, 1 broker
+    # test2() # 1 publisher, 10 subscribers, 1 broker
     # test3() # 10 publishers, 1 subscriber, 1 broker
 
     ### timing tests -- need to uncomment a line in client.py before running
