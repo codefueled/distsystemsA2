@@ -26,9 +26,9 @@ This test involves 3 brokers, 3 subscribers, and 1 publisher. It illustrates tha
 # Test 3
 This test involves 3 brokers, 2 subscribers, and 2 publishers. 1 publisher and 1 subscriber are both registered for the topic of sports, while the other publisher and other subscriber are registered for the topic of fashion. In this instance, all messages sent by each publisher are received by the corresponding subscriber. This test can be conducted with the introduction of new subscribers or publishers at any time and also with the exit of subscribers or publishers at any time.
 
-Finally, as mentioned earlier, all the unit tests specified in assignment 1 should also work (just substitute zookeeper.py for broker.py)
-
 ![Test3](/ass2testing/test3.png)
+
+Finally, as mentioned earlier, all the unit tests specified in assignment 1 should also work (just substitute zookeeper.py for broker.py)
 
 # Measurements
 
