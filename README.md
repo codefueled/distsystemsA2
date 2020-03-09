@@ -8,7 +8,9 @@ In assignment 1, broker.py was used to launch the broker. For assignment 2, zook
 The following 3 unit tests demonstrate the functionality of our system. In addition, all the unit tests specified in assignment 1 also work (just substitute zookeeper.py for broker.py).
 
 To launch the three brokers: python zookeeper.py 127.0.0.1 
+
 To launch a subscriber: python client.py "sports" 127.0.0.1
+
 To launch a publisher: python server.py "sports" 127.0.0.1
 
 # Test 1
